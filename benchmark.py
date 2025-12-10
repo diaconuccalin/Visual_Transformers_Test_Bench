@@ -117,23 +117,23 @@ Examples:
     )
 
     parser.add_argument(
-        '--use-original-vww',
+        '--use-wake-vision',
         action='store_true',
-        help='Use original Visual Wake Words dataset via pyvww (requires manual setup)'
+        help='Use Wake Vision dataset (100x larger successor to VWW) instead of original VWW'
     )
 
     parser.add_argument(
         '--vww-root',
         type=str,
         default=None,
-        help='Root directory for original VWW COCO images (required if --use-original-vww)'
+        help='Root directory for VWW COCO images (required for original VWW, default dataset)'
     )
 
     parser.add_argument(
         '--vww-ann',
         type=str,
         default=None,
-        help='Path to VWW annotation JSON file (required if --use-original-vww)'
+        help='Path to VWW annotation JSON file (required for original VWW, default dataset)'
     )
 
     parser.add_argument(
@@ -146,7 +146,7 @@ Examples:
 
 
 def get_dataset(dataset_name, split, batch_size, num_workers, image_size, data_dir,
-                use_original=False, vww_root=None, vww_ann=None, use_quality_split=False):
+                use_wake_vision=False, vww_root=None, vww_ann=None, use_quality_split=False):
     """
     Load the specified dataset.
 
@@ -157,7 +157,7 @@ def get_dataset(dataset_name, split, batch_size, num_workers, image_size, data_d
         num_workers (int): Number of workers
         image_size (int): Image size
         data_dir (str): Data directory
-        use_original (bool): Use original VWW dataset
+        use_wake_vision (bool): Use Wake Vision instead of original VWW
         vww_root (str): VWW COCO images root
         vww_ann (str): VWW annotation file
         use_quality_split (bool): Use quality split for Wake Vision
@@ -172,7 +172,7 @@ def get_dataset(dataset_name, split, batch_size, num_workers, image_size, data_d
             num_workers=num_workers,
             image_size=image_size,
             data_dir=data_dir,
-            use_original=use_original,
+            use_original=not use_wake_vision,  # Default to original VWW
             vww_root=vww_root,
             vww_ann=vww_ann,
             use_quality_split=use_quality_split
@@ -220,7 +220,7 @@ def main():
             num_workers=args.num_workers,
             image_size=args.image_size,
             data_dir=args.data_dir,
-            use_original=args.use_original_vww,
+            use_wake_vision=args.use_wake_vision,
             vww_root=args.vww_root,
             vww_ann=args.vww_ann,
             use_quality_split=args.use_quality_split

@@ -5,10 +5,10 @@ numpy>=1.24.0
 pillow>=9.0.0
 tqdm>=4.65.0
 
-# For Wake Vision dataset (default, recommended)
-tensorflow-datasets>=4.9.0
-tensorflow>=2.12.0
+# For original Visual Wake Words dataset (MLPerf compatible)
+pyvww>=0.1.0
 
-# Optional: For original Visual Wake Words dataset
-# Uncomment if you need to use the original VWW dataset with --use-original-vww
-# pyvww>=0.1.0
+# Optional: For Wake Vision dataset (alternative, 100x larger)
+# Uncomment if you want to use Wake Vision instead of original VWW
+# tensorflow-datasets>=4.9.0
+# tensorflow>=2.12.0

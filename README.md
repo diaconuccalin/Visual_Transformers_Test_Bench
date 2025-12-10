@@ -1,12 +1,12 @@
 # Visual Transformers Test Bench
 
-A benchmarking framework for evaluating visual transformer and hybrid models on various datasets, with a focus on models targeting low-power devices.
+A benchmarking framework for evaluating visual transformer and hybrid models on various datasets, with a focus on models targeting low-power devices and **MLPerf Tiny compatibility**.
 
 ## Features
 
 - **Easy-to-use CLI interface** for model evaluation
-- **Wake Vision dataset** support (successor to Visual Wake Words, 6M+ images, binary classification)
-- **Original Visual Wake Words dataset** support (optional, requires manual setup)
+- **Original Visual Wake Words dataset** support (MLPerf Tiny benchmark compatible)
+- **Wake Vision dataset** support (optional, 100x larger successor to VWW)
 - **Comprehensive metrics**: accuracy, precision, recall, F1 score, inference time, throughput
 - **Flexible model loading**: supports PyTorch checkpoints, torchvision models, and timm models
 - **GPU and CPU support** for inference
@@ -24,60 +24,111 @@ cd Visual_Transformers_Test_Bench
 pip install -r requirements.txt
 ```
 
-## Usage
+## Dataset Setup
 
-### Basic Usage
+### Quick Setup (Automated)
 
-Evaluate a pretrained model on Wake Vision dataset (default):
+Run the automated setup script to download COCO 2014 and generate Visual Wake Words annotations:
 
 ```bash
-python benchmark.py --model mobilenet_v2 --dataset visual_wake_words
+bash setup_vww_dataset.sh ./data
 ```
 
-**Note**: By default, the script uses **Wake Vision**, the successor to Visual Wake Words. Wake Vision is 100x larger (6M+ images) and readily available through TensorFlow Datasets.
+This will:
+1. Download COCO 2014 dataset (~40 GB)
+2. Generate Visual Wake Words annotations
+3. Create train/minival splits
 
-**Download size**: Only the test split (~2 GB) will be downloaded on first use since the default is `--split test`. You won't download the full 239 GB dataset unless you use the training splits.
+The setup takes approximately 1-2 hours depending on your internet connection.
+
+### Manual Setup
+
+If you prefer manual setup or need more control:
+
+1. Install pyvww:
+```bash
+pip install pyvww
+```
+
+2. Clone the visualwakewords repository:
+```bash
+git clone https://github.com/Mxbonn/visualwakewords.git
+cd visualwakewords
+```
+
+3. Download COCO 2014:
+```bash
+bash scripts/download_mscoco.sh /path/to/coco2014 2014
+```
+
+4. Create train/minival split:
+```bash
+python scripts/create_coco_train_minival_split.py \
+  --train_annotations_file="/path/to/coco2014/annotations/instances_train2014.json" \
+  --val_annotations_file="/path/to/coco2014/annotations/instances_val2014.json" \
+  --output_dir="/path/to/coco2014/annotations"
+```
+
+5. Generate Visual Wake Words annotations:
+```bash
+python scripts/create_visualwakewords_annotations.py \
+  --train_annotations_file="/path/to/coco2014/annotations/instances_maxitrain.json" \
+  --val_annotations_file="/path/to/coco2014/annotations/instances_minival.json" \
+  --output_dir="/path/to/vww" \
+  --threshold=0.005 \
+  --foreground_class='person'
+```
+
+## Usage
+
+### Basic Usage (Original VWW - MLPerf Compatible)
+
+Evaluate a pretrained model on the Visual Wake Words dataset:
+
+```bash
+python benchmark.py --model mobilenet_v2 --dataset visual_wake_words \
+  --vww-root ./data/coco2014/all \
+  --vww-ann ./data/vww/instances_train.json
+```
+
+**Note**: The original Visual Wake Words dataset is the default and is compatible with MLPerf Tiny benchmarks.
 
 ### Advanced Usage
 
 ```bash
 # Use a custom model checkpoint
-python benchmark.py --model ./models/my_model.pth --dataset visual_wake_words
+python benchmark.py --model ./models/my_model.pth --dataset visual_wake_words \
+  --vww-root ./data/coco2014/all \
+  --vww-ann ./data/vww/instances_train.json
 
 # Adjust batch size and image size
-python benchmark.py --model mobilenet_v2 --dataset visual_wake_words --batch-size 64 --image-size 224
+python benchmark.py --model mobilenet_v2 --dataset visual_wake_words \
+  --vww-root ./data/coco2014/all \
+  --vww-ann ./data/vww/instances_train.json \
+  --batch-size 64 --image-size 224
 
 # Use CPU instead of GPU
-python benchmark.py --model mobilenet_v2 --dataset visual_wake_words --device cpu
+python benchmark.py --model mobilenet_v2 --dataset visual_wake_words \
+  --vww-root ./data/coco2014/all \
+  --vww-ann ./data/vww/instances_train.json \
+  --device cpu
 
 # Evaluate on validation set
-python benchmark.py --model mobilenet_v2 --dataset visual_wake_words --split val
-
-# Use the smaller train_quality split instead of train_large (1.2M vs 5.7M samples)
-python benchmark.py --model mobilenet_v2 --dataset visual_wake_words --split train --use-quality-split
-
-# Specify custom data directory
-python benchmark.py --model mobilenet_v2 --dataset visual_wake_words --data-dir ./data
-```
-
-### Using Original Visual Wake Words Dataset
-
-If you need to use the **original Visual Wake Words dataset** (not Wake Vision), you'll need to:
-
-1. Install the pyvww library:
-```bash
-pip install pyvww
-```
-
-2. Download COCO dataset and generate VWW annotations (see [pyvww documentation](https://github.com/Mxbonn/visualwakewords))
-
-3. Run with additional flags:
-```bash
 python benchmark.py --model mobilenet_v2 --dataset visual_wake_words \
-  --use-original-vww \
-  --vww-root /path/to/coco/images \
-  --vww-ann /path/to/vww/annotations.json
+  --vww-root ./data/coco2014/all \
+  --vww-ann ./data/vww/instances_minival.json \
+  --split val
 ```
+
+### Using Wake Vision Dataset (Alternative)
+
+If you prefer to use Wake Vision (100x larger, 6M+ images), add the `--use-wake-vision` flag:
+
+```bash
+python benchmark.py --model mobilenet_v2 --dataset visual_wake_words --use-wake-vision
+```
+
+**Note**: Wake Vision requires TensorFlow Datasets and will download ~2 GB for the test split on first use.
 
 ### Command Line Arguments
 
@@ -89,19 +140,37 @@ python benchmark.py --model mobilenet_v2 --dataset visual_wake_words \
 - `--num-workers`: Number of data loading workers (default: 4)
 - `--image-size`: Input image size (default: 224)
 - `--device`: Device to run evaluation on (`cuda` or `cpu`, default: auto-detect)
-- `--data-dir`: Directory to store/load dataset (for Wake Vision)
 - `--num-classes`: Number of output classes (default: 2)
 - `--quiet`: Suppress progress bars
 
 **Dataset Selection:**
+- `--vww-root`: Root directory for VWW COCO images (required for original VWW, default)
+- `--vww-ann`: Path to VWW annotation JSON file (required for original VWW, default)
+- `--use-wake-vision`: Use Wake Vision dataset instead of original VWW
 - `--use-quality-split`: For Wake Vision train split, use train_quality (1.2M) instead of train_large (5.7M)
-- `--use-original-vww`: Use original Visual Wake Words dataset via pyvww (requires manual setup)
-- `--vww-root`: Root directory for original VWW COCO images (required if `--use-original-vww`)
-- `--vww-ann`: Path to VWW annotation JSON file (required if `--use-original-vww`)
+- `--data-dir`: Directory to store/load Wake Vision dataset
 
 ## Supported Datasets
 
-### Wake Vision (Default)
+### Original Visual Wake Words (Default, MLPerf Compatible)
+
+The **Visual Wake Words dataset** is a binary classification task derived from the COCO dataset, used in the MLPerf Tiny benchmark suite.
+
+- **Classes**: 2 (person present, no person)
+- **Train samples**: ~82,783
+- **Validation samples**: ~40,504
+- **Test samples**: ~40,775 (same as validation/minival split)
+- **Setup**: Requires COCO 2014 download and annotation generation
+- **Source**: [TensorFlow Models - Visual Wake Words](https://github.com/tensorflow/models/blob/master/research/slim/datasets/download_and_convert_visualwakewords.py)
+- **MLPerf**: Official dataset for MLPerf Tiny visual wake words benchmark
+
+**MLPerf Tiny Specifications:**
+- Image size: 96×96 pixels (resized from COCO)
+- Model: MobileNetV1 or equivalent
+- Accuracy target: 80% for MLPerf submissions
+- Task: Binary classification (person/not-person detection)
+
+### Wake Vision (Optional Alternative)
 
 **Wake Vision** is the successor to Visual Wake Words, featuring 100x more data and higher quality annotations.
 
@@ -113,24 +182,12 @@ python benchmark.py --model mobilenet_v2 --dataset visual_wake_words \
 - **Test samples**: 55,763 (~2.1 GB estimated)
 - **Total size (all splits)**: ~239 GB
 - **Source**: [TensorFlow Datasets - Wake Vision](https://www.tensorflow.org/datasets/catalog/wake_vision)
-- **Auto-download**: Yes (downloads **only the requested split**)
-
-**Important**: When you run the benchmark with `--split test` (default), TensorFlow Datasets only downloads the test split (~2 GB), **not the entire 239 GB dataset**. Each split is downloaded independently as needed.
-
-### Original Visual Wake Words (Optional)
-
-The original **Visual Wake Words dataset** is a binary classification task derived from the COCO dataset.
-
-- **Classes**: 2 (person present, no person)
-- **Train samples**: ~82,783
-- **Validation samples**: ~40,504
-- **Test samples**: ~40,775
-- **Setup**: Manual (requires COCO dataset and pyvww library)
-- **Usage**: Add `--use-original-vww --vww-root <path> --vww-ann <path>` flags
+- **Auto-download**: Yes (downloads only the requested split)
+- **Use case**: Research, larger-scale training, not MLPerf compatible
 
 **When to use which:**
-- Use **Wake Vision** (default) for: more comprehensive evaluation, larger scale training, latest research
-- Use **Original VWW** for: reproducing older papers, comparing with legacy benchmarks, smaller dataset needs
+- Use **Original VWW** (default) for: MLPerf benchmarking, comparing with published papers, official benchmarks
+- Use **Wake Vision** for: Research, comprehensive evaluation, large-scale training, exploring larger datasets
 
 ## Supported Models
 
@@ -142,7 +199,7 @@ The benchmark script supports multiple model formats:
 
 ### Example Models for Low-Power Devices
 
-- `mobilenet_v2`: Efficient CNN for mobile devices
+- `mobilenet_v2`: Efficient CNN for mobile devices (MLPerf Tiny standard)
 - `mobilenet_v3_small`: Lightweight MobileNet variant
 - `mobilevit_s`: Mobile Vision Transformer (requires timm)
 - `efficientnet_b0`: Efficient CNN with excellent accuracy/efficiency trade-off
@@ -166,9 +223,10 @@ The benchmark script provides comprehensive evaluation metrics:
 ```
 Visual_Transformers_Test_Bench/
 ├── benchmark.py              # Main benchmark script
+├── setup_vww_dataset.sh      # Automated dataset setup script
 ├── datasets/
 │   ├── __init__.py
-│   └── visual_wake_words.py  # Visual Wake Words dataset loader
+│   └── visual_wake_words.py  # VWW and Wake Vision dataset loaders
 ├── models/
 │   └── __init__.py           # Custom model implementations
 ├── utils/
@@ -179,34 +237,32 @@ Visual_Transformers_Test_Bench/
 └── README.md                 # This file
 ```
 
-## Adding New Datasets
+## MLPerf Tiny Benchmark
 
-To add a new dataset:
+This repository is designed to work with the MLPerf Tiny benchmark suite. For official MLPerf submissions:
 
-1. Create a new dataset loader in `datasets/` (e.g., `datasets/my_dataset.py`)
-2. Implement a function that returns a PyTorch DataLoader
-3. Update `datasets/__init__.py` to export the new function
-4. Add the dataset name to `SUPPORTED_DATASETS` in `benchmark.py`
-5. Add dataset loading logic in the `get_dataset()` function
+1. Use the original Visual Wake Words dataset (default)
+2. Resize images to 96×96 pixels (`--image-size 96`)
+3. Target 80% accuracy for the quality metric
+4. Follow MLPerf Tiny rules and guidelines
 
-## Adding Custom Models
-
-To add custom model architectures:
-
-1. Implement your model in `models/` directory
-2. Save trained checkpoints with the full model or state_dict
-3. Load the model using the `--model` argument pointing to the checkpoint file
+For more information, see:
+- [MLPerf Tiny Benchmark](https://mlcommons.org/en/inference-tiny/)
+- [Visual Wake Words Challenge](https://arxiv.org/abs/1906.05721)
 
 ## Requirements
 
 - Python 3.8+
 - PyTorch 2.0+
 - torchvision
-- TensorFlow 2.12+ (for dataset loading)
-- tensorflow-datasets
+- pyvww (for original Visual Wake Words dataset)
 - NumPy
 - Pillow
 - tqdm
+
+Optional (for Wake Vision):
+- TensorFlow 2.12+
+- tensorflow-datasets 4.9+
 
 ## Future Enhancements
 
@@ -217,6 +273,14 @@ To add custom model architectures:
 - [ ] Batch inference optimization
 - [ ] Export results to CSV/JSON
 - [ ] Comparative analysis across multiple models
+
+## References
+
+- [Visual Wake Words Dataset Paper](https://arxiv.org/abs/1906.05721)
+- [MLCommons MLPerf Tiny v1.3](https://mlcommons.org/2025/09/mlperf-tiny-v1-3-tech/)
+- [pyvww Library](https://github.com/Mxbonn/visualwakewords)
+- [TensorFlow Visual Wake Words](https://github.com/tensorflow/models/blob/master/research/slim/datasets/download_and_convert_visualwakewords.py)
+- [Wake Vision Dataset](https://www.tensorflow.org/datasets/catalog/wake_vision)
 
 ## License
 
