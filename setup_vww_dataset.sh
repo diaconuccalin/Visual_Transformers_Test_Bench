@@ -8,6 +8,9 @@ set -e
 
 # Configuration
 DATA_DIR="${1:-./data}"
+# Convert to absolute path
+mkdir -p "${DATA_DIR}"
+DATA_DIR="$(cd "${DATA_DIR}" && pwd)"
 COCO_DIR="${DATA_DIR}/coco2014"
 VWW_DIR="${DATA_DIR}/vww"
 YEAR="2014"
