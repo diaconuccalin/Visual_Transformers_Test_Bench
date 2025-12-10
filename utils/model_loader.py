@@ -32,13 +32,38 @@ def load_model(model_path, num_classes=2, device='cuda'):
         if isinstance(checkpoint, dict):
             if 'model' in checkpoint:
                 model = checkpoint['model']
-            elif 'state_dict' in checkpoint:
-                # Need to initialize model architecture first
-                # This is a simplified approach - may need customization
-                raise NotImplementedError(
-                    "Loading from state_dict requires model architecture. "
-                    "Please provide the full model or modify this function."
-                )
+            elif 'model_state_dict' in checkpoint or 'state_dict' in checkpoint:
+                # Checkpoint contains state_dict - need to reconstruct model
+                state_dict_key = 'model_state_dict' if 'model_state_dict' in checkpoint else 'state_dict'
+                architecture = checkpoint.get('architecture', 'mobilenet_v2')
+                num_classes_saved = checkpoint.get('num_classes', num_classes)
+
+                print(f"Loading {architecture} from state_dict with {num_classes_saved} classes...")
+
+                # Import torchvision models
+                import torchvision.models as models
+
+                # Create the model architecture
+                if hasattr(models, architecture):
+                    model = getattr(models, architecture)(pretrained=False)
+
+                    # Adapt classifier for the number of classes
+                    if hasattr(model, 'classifier'):
+                        if isinstance(model.classifier, nn.Sequential):
+                            # MobileNet style
+                            in_features = model.classifier[-1].in_features
+                            model.classifier[-1] = nn.Linear(in_features, num_classes_saved)
+                        else:
+                            in_features = model.classifier.in_features
+                            model.classifier = nn.Linear(in_features, num_classes_saved)
+                    elif hasattr(model, 'fc'):
+                        in_features = model.fc.in_features
+                        model.fc = nn.Linear(in_features, num_classes_saved)
+
+                    # Load the state dict
+                    model.load_state_dict(checkpoint[state_dict_key])
+                else:
+                    raise ValueError(f"Unknown architecture: {architecture}")
             else:
                 model = checkpoint
         else:
