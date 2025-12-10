@@ -34,7 +34,9 @@ Evaluate a pretrained model on Wake Vision dataset (default):
 python benchmark.py --model mobilenet_v2 --dataset visual_wake_words
 ```
 
-**Note**: By default, the script uses **Wake Vision**, the successor to Visual Wake Words. Wake Vision is 100x larger (6M+ images) and readily available through TensorFlow Datasets. The dataset will be automatically downloaded on first use (~239 GB).
+**Note**: By default, the script uses **Wake Vision**, the successor to Visual Wake Words. Wake Vision is 100x larger (6M+ images) and readily available through TensorFlow Datasets.
+
+**Download size**: Only the test split (~2 GB) will be downloaded on first use since the default is `--split test`. You won't download the full 239 GB dataset unless you use the training splits.
 
 ### Advanced Usage
 
@@ -105,13 +107,15 @@ python benchmark.py --model mobilenet_v2 --dataset visual_wake_words \
 
 - **Classes**: 2 (person present, no person)
 - **Train samples**:
-  - train_large: 5,760,428 samples
-  - train_quality: 1,248,230 samples (use `--use-quality-split`)
-- **Validation samples**: 18,582
-- **Test samples**: 55,763
-- **Size**: ~239 GB
+  - train_large: 5,760,428 samples (~220 GB estimated)
+  - train_quality: 1,248,230 samples (~48 GB estimated)
+- **Validation samples**: 18,582 (~700 MB estimated)
+- **Test samples**: 55,763 (~2.1 GB estimated)
+- **Total size (all splits)**: ~239 GB
 - **Source**: [TensorFlow Datasets - Wake Vision](https://www.tensorflow.org/datasets/catalog/wake_vision)
-- **Auto-download**: Yes (downloads automatically on first use)
+- **Auto-download**: Yes (downloads **only the requested split**)
+
+**Important**: When you run the benchmark with `--split test` (default), TensorFlow Datasets only downloads the test split (~2 GB), **not the entire 239 GB dataset**. Each split is downloaded independently as needed.
 
 ### Original Visual Wake Words (Optional)
 

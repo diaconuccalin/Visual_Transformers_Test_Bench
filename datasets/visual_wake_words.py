@@ -43,6 +43,18 @@ class WakeVisionDataset(Dataset):
         # Load dataset using tensorflow_datasets
         print(f"Loading Wake Vision dataset ({tf_split} split)...")
         print("Note: Wake Vision is the successor to Visual Wake Words (100x larger, 6M+ images)")
+
+        # Display estimated download size
+        size_info = {
+            'train_large': '~220 GB',
+            'train_quality': '~48 GB',
+            'validation': '~700 MB',
+            'test': '~2.1 GB'
+        }
+        if tf_split in size_info:
+            print(f"Estimated download size for {tf_split} split: {size_info[tf_split]}")
+            print("(Only this split will be downloaded, not the entire dataset)")
+
         self.dataset = tfds.load(
             'wake_vision',
             split=tf_split,
