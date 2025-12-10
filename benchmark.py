@@ -116,10 +116,37 @@ Examples:
         help='Suppress progress bars'
     )
 
+    parser.add_argument(
+        '--use-original-vww',
+        action='store_true',
+        help='Use original Visual Wake Words dataset via pyvww (requires manual setup)'
+    )
+
+    parser.add_argument(
+        '--vww-root',
+        type=str,
+        default=None,
+        help='Root directory for original VWW COCO images (required if --use-original-vww)'
+    )
+
+    parser.add_argument(
+        '--vww-ann',
+        type=str,
+        default=None,
+        help='Path to VWW annotation JSON file (required if --use-original-vww)'
+    )
+
+    parser.add_argument(
+        '--use-quality-split',
+        action='store_true',
+        help='For Wake Vision train split, use train_quality (1.2M) instead of train_large (5.7M)'
+    )
+
     return parser.parse_args()
 
 
-def get_dataset(dataset_name, split, batch_size, num_workers, image_size, data_dir):
+def get_dataset(dataset_name, split, batch_size, num_workers, image_size, data_dir,
+                use_original=False, vww_root=None, vww_ann=None, use_quality_split=False):
     """
     Load the specified dataset.
 
@@ -130,6 +157,10 @@ def get_dataset(dataset_name, split, batch_size, num_workers, image_size, data_d
         num_workers (int): Number of workers
         image_size (int): Image size
         data_dir (str): Data directory
+        use_original (bool): Use original VWW dataset
+        vww_root (str): VWW COCO images root
+        vww_ann (str): VWW annotation file
+        use_quality_split (bool): Use quality split for Wake Vision
 
     Returns:
         DataLoader: Dataset loader
@@ -140,7 +171,11 @@ def get_dataset(dataset_name, split, batch_size, num_workers, image_size, data_d
             batch_size=batch_size,
             num_workers=num_workers,
             image_size=image_size,
-            data_dir=data_dir
+            data_dir=data_dir,
+            use_original=use_original,
+            vww_root=vww_root,
+            vww_ann=vww_ann,
+            use_quality_split=use_quality_split
         )
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}")
@@ -184,7 +219,11 @@ def main():
             batch_size=args.batch_size,
             num_workers=args.num_workers,
             image_size=args.image_size,
-            data_dir=args.data_dir
+            data_dir=args.data_dir,
+            use_original=args.use_original_vww,
+            vww_root=args.vww_root,
+            vww_ann=args.vww_ann,
+            use_quality_split=args.use_quality_split
         )
         print("Dataset loaded successfully!\n")
 

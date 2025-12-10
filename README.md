@@ -5,7 +5,8 @@ A benchmarking framework for evaluating visual transformer and hybrid models on 
 ## Features
 
 - **Easy-to-use CLI interface** for model evaluation
-- **Visual Wake Words dataset** support (binary classification: person vs no person)
+- **Wake Vision dataset** support (successor to Visual Wake Words, 6M+ images, binary classification)
+- **Original Visual Wake Words dataset** support (optional, requires manual setup)
 - **Comprehensive metrics**: accuracy, precision, recall, F1 score, inference time, throughput
 - **Flexible model loading**: supports PyTorch checkpoints, torchvision models, and timm models
 - **GPU and CPU support** for inference
@@ -27,11 +28,13 @@ pip install -r requirements.txt
 
 ### Basic Usage
 
-Evaluate a pretrained model on the Visual Wake Words dataset:
+Evaluate a pretrained model on Wake Vision dataset (default):
 
 ```bash
 python benchmark.py --model mobilenet_v2 --dataset visual_wake_words
 ```
+
+**Note**: By default, the script uses **Wake Vision**, the successor to Visual Wake Words. Wake Vision is 100x larger (6M+ images) and readily available through TensorFlow Datasets. The dataset will be automatically downloaded on first use (~239 GB).
 
 ### Advanced Usage
 
@@ -48,12 +51,35 @@ python benchmark.py --model mobilenet_v2 --dataset visual_wake_words --device cp
 # Evaluate on validation set
 python benchmark.py --model mobilenet_v2 --dataset visual_wake_words --split val
 
+# Use the smaller train_quality split instead of train_large (1.2M vs 5.7M samples)
+python benchmark.py --model mobilenet_v2 --dataset visual_wake_words --split train --use-quality-split
+
 # Specify custom data directory
 python benchmark.py --model mobilenet_v2 --dataset visual_wake_words --data-dir ./data
 ```
 
+### Using Original Visual Wake Words Dataset
+
+If you need to use the **original Visual Wake Words dataset** (not Wake Vision), you'll need to:
+
+1. Install the pyvww library:
+```bash
+pip install pyvww
+```
+
+2. Download COCO dataset and generate VWW annotations (see [pyvww documentation](https://github.com/Mxbonn/visualwakewords))
+
+3. Run with additional flags:
+```bash
+python benchmark.py --model mobilenet_v2 --dataset visual_wake_words \
+  --use-original-vww \
+  --vww-root /path/to/coco/images \
+  --vww-ann /path/to/vww/annotations.json
+```
+
 ### Command Line Arguments
 
+**Core Arguments:**
 - `--model`: Path to model checkpoint or name of pretrained model (required)
 - `--dataset`: Dataset to evaluate on (required, currently supports: `visual_wake_words`)
 - `--split`: Dataset split to use (`train`, `val`, or `test`, default: `test`)
@@ -61,21 +87,46 @@ python benchmark.py --model mobilenet_v2 --dataset visual_wake_words --data-dir 
 - `--num-workers`: Number of data loading workers (default: 4)
 - `--image-size`: Input image size (default: 224)
 - `--device`: Device to run evaluation on (`cuda` or `cpu`, default: auto-detect)
-- `--data-dir`: Directory to store/load dataset
+- `--data-dir`: Directory to store/load dataset (for Wake Vision)
 - `--num-classes`: Number of output classes (default: 2)
 - `--quiet`: Suppress progress bars
 
+**Dataset Selection:**
+- `--use-quality-split`: For Wake Vision train split, use train_quality (1.2M) instead of train_large (5.7M)
+- `--use-original-vww`: Use original Visual Wake Words dataset via pyvww (requires manual setup)
+- `--vww-root`: Root directory for original VWW COCO images (required if `--use-original-vww`)
+- `--vww-ann`: Path to VWW annotation JSON file (required if `--use-original-vww`)
+
 ## Supported Datasets
 
-### Visual Wake Words
+### Wake Vision (Default)
 
-The Visual Wake Words dataset is a binary classification task derived from the COCO dataset. The task is to detect whether an image contains a person or not.
+**Wake Vision** is the successor to Visual Wake Words, featuring 100x more data and higher quality annotations.
+
+- **Classes**: 2 (person present, no person)
+- **Train samples**:
+  - train_large: 5,760,428 samples
+  - train_quality: 1,248,230 samples (use `--use-quality-split`)
+- **Validation samples**: 18,582
+- **Test samples**: 55,763
+- **Size**: ~239 GB
+- **Source**: [TensorFlow Datasets - Wake Vision](https://www.tensorflow.org/datasets/catalog/wake_vision)
+- **Auto-download**: Yes (downloads automatically on first use)
+
+### Original Visual Wake Words (Optional)
+
+The original **Visual Wake Words dataset** is a binary classification task derived from the COCO dataset.
 
 - **Classes**: 2 (person present, no person)
 - **Train samples**: ~82,783
 - **Validation samples**: ~40,504
 - **Test samples**: ~40,775
-- **Source**: [TensorFlow Datasets](https://www.tensorflow.org/datasets/catalog/visual_wake_words)
+- **Setup**: Manual (requires COCO dataset and pyvww library)
+- **Usage**: Add `--use-original-vww --vww-root <path> --vww-ann <path>` flags
+
+**When to use which:**
+- Use **Wake Vision** (default) for: more comprehensive evaluation, larger scale training, latest research
+- Use **Original VWW** for: reproducing older papers, comparing with legacy benchmarks, smaller dataset needs
 
 ## Supported Models
 

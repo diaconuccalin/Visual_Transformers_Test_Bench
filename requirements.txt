@@ -1,7 +1,14 @@
+# Core dependencies
 torch>=2.0.0
 torchvision>=0.15.0
 numpy>=1.24.0
 pillow>=9.0.0
 tqdm>=4.65.0
+
+# For Wake Vision dataset (default, recommended)
 tensorflow-datasets>=4.9.0
 tensorflow>=2.12.0
+
+# Optional: For original Visual Wake Words dataset
+# Uncomment if you need to use the original VWW dataset with --use-original-vww
+# pyvww>=0.1.0
