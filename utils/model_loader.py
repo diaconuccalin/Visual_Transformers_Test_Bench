@@ -75,8 +75,22 @@ def load_model(model_path, num_classes=2, device='cuda'):
                 else:
                     raise ValueError(f"Unknown architecture: {architecture}")
             else:
-                model = checkpoint
+                # Direct state_dict (e.g., from chenyaofo/pytorch-cifar-models)
+                # These are bare state_dicts for specific architectures
+                print("Loading model from bare state_dict...")
+                
+                # Try to infer architecture from checkpoint keys
+                # chenyaofo models are MobileNetV2 for CIFAR-10
+                if 'features.0.0.weight' in checkpoint and num_classes == 10:
+                    # This looks like a MobileNetV2 from chenyaofo
+                    print("Detected MobileNetV2 architecture for CIFAR-10")
+                    import torchvision.models as models
+                    model = models.mobilenet_v2(pretrained=False, num_classes=num_classes)
+                    model.load_state_dict(checkpoint)
+                else:
+                    model = checkpoint
         else:
+            # Direct model object
             model = checkpoint
 
     else:

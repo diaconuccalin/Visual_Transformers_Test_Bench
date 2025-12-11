@@ -114,15 +114,21 @@ def print_results(results):
     print(f"Correct Predictions:  {results['correct_predictions']}")
     print("-"*60)
     print(f"Accuracy:             {results['accuracy']:.4f} ({results['accuracy']*100:.2f}%)")
-    print(f"Precision:            {results['precision']:.4f}")
-    print(f"Recall:               {results['recall']:.4f}")
-    print(f"F1 Score:             {results['f1_score']:.4f}")
-    print("-"*60)
-    print("Confusion Matrix:")
-    print(f"  True Positives:     {results['true_positives']}")
-    print(f"  True Negatives:     {results['true_negatives']}")
-    print(f"  False Positives:    {results['false_positives']}")
-    print(f"  False Negatives:    {results['false_negatives']}")
+    
+    # Only show binary classification metrics if they make sense
+    if results['true_positives'] + results['true_negatives'] + \
+       results['false_positives'] + results['false_negatives'] == results['total_samples']:
+        # This is binary classification - show all metrics
+        print(f"Precision:            {results['precision']:.4f}")
+        print(f"Recall:               {results['recall']:.4f}")
+        print(f"F1 Score:             {results['f1_score']:.4f}")
+        print("-"*60)
+        print("Confusion Matrix:")
+        print(f"  True Positives:     {results['true_positives']}")
+        print(f"  True Negatives:     {results['true_negatives']}")
+        print(f"  False Positives:    {results['false_positives']}")
+        print(f"  False Negatives:    {results['false_negatives']}")
+    
     print("-"*60)
     print(f"Avg Inference Time:   {results['avg_inference_time_per_sample']*1000:.2f} ms/sample")
     print(f"Throughput:           {results['throughput_samples_per_sec']:.2f} samples/sec")
