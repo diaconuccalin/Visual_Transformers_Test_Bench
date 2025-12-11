@@ -40,12 +40,7 @@ def evaluate_model(model, dataloader, device='cuda', verbose=True):
     with torch.no_grad():
         iterator = tqdm(dataloader, desc="Evaluating") if verbose else dataloader
 
-        i = 0
-
         for images, labels in iterator:
-            i += 1
-            if i == 100:
-                break
             images = images.to(device)
             labels = labels.to(device)
 
