@@ -5,7 +5,6 @@ Evaluation utilities for benchmarking models.
 import torch
 import time
 from tqdm import tqdm
-import numpy as np
 
 
 def evaluate_model(model, dataloader, device='cuda', verbose=True):

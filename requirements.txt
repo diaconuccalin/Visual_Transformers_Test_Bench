@@ -7,3 +7,6 @@ tqdm>=4.65.0
 
 # For Visual Wake Words dataset (MLPerf compatible)
 pyvww>=0.1.0
+
+# TensorFlow for MobileNet VWW model
+tensorflow>=2.13.0
