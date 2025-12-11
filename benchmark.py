@@ -97,13 +97,6 @@ Examples:
     )
 
     parser.add_argument(
-        '--data-dir',
-        type=str,
-        default=None,
-        help='Directory to store/load dataset (default: tensorflow_datasets default)'
-    )
-
-    parser.add_argument(
         '--num-classes',
         type=int,
         default=2,
@@ -117,36 +110,24 @@ Examples:
     )
 
     parser.add_argument(
-        '--use-wake-vision',
-        action='store_true',
-        help='Use Wake Vision dataset (100x larger successor to VWW) instead of original VWW'
-    )
-
-    parser.add_argument(
         '--vww-root',
         type=str,
         default=None,
-        help='Root directory for VWW COCO images (required for original VWW, default dataset)'
+        help='Root directory for VWW COCO images (required)'
     )
 
     parser.add_argument(
         '--vww-ann',
         type=str,
         default=None,
-        help='Path to VWW annotation JSON file (required for original VWW, default dataset)'
-    )
-
-    parser.add_argument(
-        '--use-quality-split',
-        action='store_true',
-        help='For Wake Vision train split, use train_quality (1.2M) instead of train_large (5.7M)'
+        help='Path to VWW annotation JSON file (required)'
     )
 
     return parser.parse_args()
 
 
-def get_dataset(dataset_name, split, batch_size, num_workers, image_size, data_dir,
-                use_wake_vision=False, vww_root=None, vww_ann=None, use_quality_split=False):
+def get_dataset(dataset_name, split, batch_size, num_workers, image_size,
+                vww_root=None, vww_ann=None):
     """
     Load the specified dataset.
 
@@ -156,11 +137,8 @@ def get_dataset(dataset_name, split, batch_size, num_workers, image_size, data_d
         batch_size (int): Batch size
         num_workers (int): Number of workers
         image_size (int): Image size
-        data_dir (str): Data directory
-        use_wake_vision (bool): Use Wake Vision instead of original VWW
         vww_root (str): VWW COCO images root
         vww_ann (str): VWW annotation file
-        use_quality_split (bool): Use quality split for Wake Vision
 
     Returns:
         DataLoader: Dataset loader
@@ -171,11 +149,8 @@ def get_dataset(dataset_name, split, batch_size, num_workers, image_size, data_d
             batch_size=batch_size,
             num_workers=num_workers,
             image_size=image_size,
-            data_dir=data_dir,
-            use_original=not use_wake_vision,  # Default to original VWW
             vww_root=vww_root,
-            vww_ann=vww_ann,
-            use_quality_split=use_quality_split
+            vww_ann=vww_ann
         )
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}")
@@ -219,11 +194,8 @@ def main():
             batch_size=args.batch_size,
             num_workers=args.num_workers,
             image_size=args.image_size,
-            data_dir=args.data_dir,
-            use_wake_vision=args.use_wake_vision,
             vww_root=args.vww_root,
-            vww_ann=args.vww_ann,
-            use_quality_split=args.use_quality_split
+            vww_ann=args.vww_ann
         )
         print("Dataset loaded successfully!\n")
 
