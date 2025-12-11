@@ -7,10 +7,10 @@ Task: Detect whether an image contains a person or not.
 This loader uses the original Visual Wake Words dataset via pyvww library.
 """
 
-import torch
+
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
-from PIL import Image
+
 
 
 class OriginalVWWDataset(Dataset):

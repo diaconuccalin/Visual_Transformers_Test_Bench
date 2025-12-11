@@ -79,7 +79,7 @@ def evaluate_model(model, dataloader, device='cuda', verbose=True):
     f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
 
     avg_inference_time = total_time / total_samples
-    throughput = total_samples / total_time
+    throughput = total_samples / total_time if total_time > 0 else 0
 
     results = {
         'accuracy': accuracy,

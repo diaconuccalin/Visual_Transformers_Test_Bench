@@ -10,10 +10,10 @@ import os
 import sys
 import argparse
 import urllib.request
-import torch
-import torch.nn as nn
-import torchvision.models as models
-import numpy as np
+
+
+
+
 
 
 # URL for the trained VWW model from MLCommons Tiny

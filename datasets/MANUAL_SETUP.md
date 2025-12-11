@@ -58,4 +58,4 @@ python benchmark.py --model mobilenet_v1 --dataset visual_wake_words \
 
 Note: `mobilenet_v1` automatically uses the trained VWW model for this dataset.
 
-See the main [README.md](README.md) for more usage examples.
+See the main [README.md](../README.md) for more usage examples.
