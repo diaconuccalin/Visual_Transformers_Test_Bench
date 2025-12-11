@@ -27,7 +27,7 @@ def evaluate_model(model, dataloader, device='cuda', verbose=True):
     total_samples = 0
     total_time = 0
 
-    # For per-class metrics
+    # For per-class metrics (binary classification only)
     true_positives = 0
     false_positives = 0
     true_negatives = 0
@@ -35,6 +35,9 @@ def evaluate_model(model, dataloader, device='cuda', verbose=True):
 
     all_predictions = []
     all_labels = []
+    
+    # Detect number of classes from first batch
+    num_classes = None
 
     with torch.no_grad():
         iterator = tqdm(dataloader, desc="Evaluating") if verbose else dataloader
@@ -42,6 +45,14 @@ def evaluate_model(model, dataloader, device='cuda', verbose=True):
         for images, labels in iterator:
             images = images.to(device)
             labels = labels.to(device)
+            
+            # Detect number of classes from labels
+            if num_classes is None:
+                num_classes = len(torch.unique(labels))
+                if num_classes > 2:
+                    print(f"Detected multi-class classification ({num_classes} classes)")
+                else:
+                    print(f"Detected binary classification")
 
             # Measure inference time
             start_time = time.time()
@@ -94,7 +105,8 @@ def evaluate_model(model, dataloader, device='cuda', verbose=True):
         'false_negatives': false_negatives,
         'avg_inference_time_per_sample': avg_inference_time,
         'throughput_samples_per_sec': throughput,
-        'total_time': total_time
+        'total_time': total_time,
+        'num_classes': num_classes if num_classes is not None else 2
     }
 
     return results
@@ -114,15 +126,21 @@ def print_results(results):
     print(f"Correct Predictions:  {results['correct_predictions']}")
     print("-"*60)
     print(f"Accuracy:             {results['accuracy']:.4f} ({results['accuracy']*100:.2f}%)")
-    print(f"Precision:            {results['precision']:.4f}")
-    print(f"Recall:               {results['recall']:.4f}")
-    print(f"F1 Score:             {results['f1_score']:.4f}")
-    print("-"*60)
-    print("Confusion Matrix:")
-    print(f"  True Positives:     {results['true_positives']}")
-    print(f"  True Negatives:     {results['true_negatives']}")
-    print(f"  False Positives:    {results['false_positives']}")
-    print(f"  False Negatives:    {results['false_negatives']}")
+    
+    # Only show binary classification metrics for binary classification tasks
+    num_classes = results.get('num_classes', 2)
+    if num_classes == 2:
+        # This is binary classification - show all metrics
+        print(f"Precision:            {results['precision']:.4f}")
+        print(f"Recall:               {results['recall']:.4f}")
+        print(f"F1 Score:             {results['f1_score']:.4f}")
+        print("-"*60)
+        print("Confusion Matrix:")
+        print(f"  True Positives:     {results['true_positives']}")
+        print(f"  True Negatives:     {results['true_negatives']}")
+        print(f"  False Positives:    {results['false_positives']}")
+        print(f"  False Negatives:    {results['false_negatives']}")
+    
     print("-"*60)
     print(f"Avg Inference Time:   {results['avg_inference_time_per_sample']*1000:.2f} ms/sample")
     print(f"Throughput:           {results['throughput_samples_per_sec']:.2f} samples/sec")
