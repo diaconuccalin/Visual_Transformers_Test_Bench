@@ -70,16 +70,17 @@ pip install -r requirements.txt
 # Download and prepare Visual Wake Words dataset (~40GB COCO 2014)
 bash setup_vww_dataset.sh ./data
 
-# Optional: Download VWW-trained MobileNet model
+# The trained VWW model downloads automatically when using mobilenet_v1_vww
+# Or manually download:
 python download_vww_model.py --output-dir ./models
 ```
 
 ### Running Benchmarks
 
 ```bash
-# Basic evaluation with pretrained model
+# Recommended: Evaluate trained MobileNetV1 (auto-downloads, ~84% accuracy)
 python benchmark.py \
-  --model mobilenet_v2 \
+  --model mobilenet_v1_vww \
   --dataset visual_wake_words \
   --vww-root ./data/coco2014/all \
   --vww-ann ./data/coco2014/annotations/vww/instances_val.json
@@ -91,17 +92,23 @@ python benchmark.py \
   --vww-root ./data/coco2014/all \
   --vww-ann ./data/coco2014/annotations/vww/instances_val.json
 
-# MLPerf Tiny compliant (96×96 images)
+# Direct TFLite model evaluation
+python benchmark.py \
+  --model ./models/vww_96_float.tflite \
+  --dataset visual_wake_words \
+  --vww-root ./data/coco2014/all \
+  --vww-ann ./data/coco2014/annotations/vww/instances_val.json
+
+# Untrained MobileNetV2 (ImageNet weights, poor VWW accuracy ~50%)
 python benchmark.py \
   --model mobilenet_v2 \
   --dataset visual_wake_words \
-  --image-size 96 \
   --vww-root ./data/coco2014/all \
-  --vww-ann ./data/coco2014/annotations/vww/instances_train.json
+  --vww-ann ./data/coco2014/annotations/vww/instances_val.json
 
 # CPU-only evaluation
 python benchmark.py \
-  --model mobilenet_v2 \
+  --model mobilenet_v1_vww \
   --dataset visual_wake_words \
   --device cpu \
   --vww-root ./data/coco2014/all \

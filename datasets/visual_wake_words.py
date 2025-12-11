@@ -73,7 +73,8 @@ class OriginalVWWDataset(Dataset):
 
 
 def get_visual_wake_words_dataset(split='test', batch_size=32, num_workers=4,
-                                   image_size=224, vww_root=None, vww_ann=None):
+                                   image_size=224, vww_root=None, vww_ann=None,
+                                   preprocessing='imagenet'):
     """
     Get Visual Wake Words dataset with standard preprocessing.
 
@@ -84,26 +85,42 @@ def get_visual_wake_words_dataset(split='test', batch_size=32, num_workers=4,
         image_size (int): Size to resize images to
         vww_root (str): Root directory for VWW COCO images
         vww_ann (str): Path to VWW annotation file
+        preprocessing (str): Preprocessing type - 'imagenet' for ImageNet normalization,
+                           'tflite' for [0, 1] range (used by TFLite models)
 
     Returns:
         DataLoader: PyTorch DataLoader for the dataset
     """
     # Define standard transforms for evaluation
-    if split == 'train':
-        transform = transforms.Compose([
-            transforms.Resize((image_size, image_size)),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                               std=[0.229, 0.224, 0.225])
-        ])
-    else:
-        transform = transforms.Compose([
-            transforms.Resize((image_size, image_size)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                               std=[0.229, 0.224, 0.225])
-        ])
+    if preprocessing == 'tflite':
+        # TFLite models typically expect input in [0, 1] range
+        if split == 'train':
+            transform = transforms.Compose([
+                transforms.Resize((image_size, image_size)),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),  # This already converts to [0, 1]
+            ])
+        else:
+            transform = transforms.Compose([
+                transforms.Resize((image_size, image_size)),
+                transforms.ToTensor(),  # This already converts to [0, 1]
+            ])
+    else:  # 'imagenet' preprocessing
+        if split == 'train':
+            transform = transforms.Compose([
+                transforms.Resize((image_size, image_size)),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                   std=[0.229, 0.224, 0.225])
+            ])
+        else:
+            transform = transforms.Compose([
+                transforms.Resize((image_size, image_size)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                   std=[0.229, 0.224, 0.225])
+            ])
 
     dataset = OriginalVWWDataset(
         split=split,

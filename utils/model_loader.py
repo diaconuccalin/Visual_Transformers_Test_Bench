@@ -5,6 +5,7 @@ Model loading utilities for various model formats.
 import torch
 import torch.nn as nn
 from pathlib import Path
+from .tflite_wrapper import TFLiteModelWrapper
 
 
 def load_model(model_path, num_classes=2, device='cuda'):
@@ -17,9 +18,18 @@ def load_model(model_path, num_classes=2, device='cuda'):
         device (str): Device to load model on ('cuda' or 'cpu')
 
     Returns:
-        model: Loaded PyTorch model
+        model: Loaded PyTorch model or TFLite wrapper
+        dict: Metadata including 'preprocessing' type
     """
     model_path = Path(model_path)
+
+    # Check if it's a TFLite model
+    if str(model_path).endswith('.tflite') and model_path.exists():
+        print(f"Loading TFLite model from {model_path}")
+        model = TFLiteModelWrapper(str(model_path), device=device)
+        model.eval()
+        # TFLite models need special preprocessing
+        return model, {'preprocessing': 'tflite'}
 
     # Check if it's a file path
     if model_path.exists():
@@ -118,4 +128,5 @@ def load_model(model_path, num_classes=2, device='cuda'):
     model.eval()
 
     print(f"Model loaded successfully on {device}")
-    return model
+    # PyTorch models use ImageNet preprocessing
+    return model, {'preprocessing': 'imagenet'}
