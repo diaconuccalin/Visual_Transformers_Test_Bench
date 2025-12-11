@@ -7,6 +7,98 @@ import time
 from tqdm import tqdm
 
 
+def evaluate_model_multiclass(model, dataloader, device='cuda', verbose=True, topk=(1, 5)):
+    """
+    Evaluate a model on a multi-class dataset with top-k accuracy metrics.
+
+    Args:
+        model: PyTorch model
+        dataloader: DataLoader for the dataset
+        device (str): Device to run evaluation on
+        verbose (bool): Whether to show progress bar
+        topk (tuple): Tuple of k values for top-k accuracy (default: (1, 5))
+
+    Returns:
+        dict: Dictionary containing evaluation metrics including top-k accuracies
+    """
+    model.eval()
+    model = model.to(device)
+
+    total_samples = 0
+    total_time = 0
+    topk_correct = {k: 0 for k in topk}
+    maxk = max(topk)
+
+    with torch.no_grad():
+        iterator = tqdm(dataloader, desc="Evaluating") if verbose else dataloader
+
+        for images, labels in iterator:
+            images = images.to(device)
+            labels = labels.to(device)
+
+            # Measure inference time
+            start_time = time.time()
+            outputs = model(images)
+            end_time = time.time()
+
+            total_time += (end_time - start_time)
+            batch_size = labels.size(0)
+            total_samples += batch_size
+
+            # Get top-k predictions
+            _, pred = outputs.topk(maxk, dim=1, largest=True, sorted=True)
+            pred = pred.t()  # Transpose to shape (maxk, batch_size)
+            correct = pred.eq(labels.view(1, -1).expand_as(pred))
+
+            # Calculate top-k correct counts
+            for k in topk:
+                correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
+                topk_correct[k] += correct_k.item()
+
+    # Calculate metrics
+    topk_accuracy = {k: topk_correct[k] / total_samples for k in topk}
+    avg_inference_time = total_time / total_samples
+    throughput = total_samples / total_time if total_time > 0 else 0
+
+    results = {
+        'total_samples': total_samples,
+        'topk_accuracy': topk_accuracy,
+        'top1_accuracy': topk_accuracy.get(1, 0),
+        'top5_accuracy': topk_accuracy.get(5, 0),
+        'avg_inference_time_per_sample': avg_inference_time,
+        'throughput_samples_per_sec': throughput,
+        'total_time': total_time
+    }
+
+    return results
+
+
+def print_results_multiclass(results):
+    """
+    Pretty print evaluation results for multi-class classification.
+
+    Args:
+        results (dict): Results dictionary from evaluate_model_multiclass
+    """
+    print("\n" + "="*60)
+    print("EVALUATION RESULTS (Multi-class)")
+    print("="*60)
+    print(f"Total Samples:        {results['total_samples']}")
+    print("-"*60)
+
+    # Print top-k accuracies
+    topk_accuracy = results.get('topk_accuracy', {})
+    for k in sorted(topk_accuracy.keys()):
+        acc = topk_accuracy[k]
+        print(f"Top-{k} Accuracy:       {acc:.4f} ({acc*100:.2f}%)")
+
+    print("-"*60)
+    print(f"Avg Inference Time:   {results['avg_inference_time_per_sample']*1000:.2f} ms/sample")
+    print(f"Throughput:           {results['throughput_samples_per_sec']:.2f} samples/sec")
+    print(f"Total Time:           {results['total_time']:.2f} seconds")
+    print("="*60 + "\n")
+
+
 def evaluate_model(model, dataloader, device='cuda', verbose=True):
     """
     Evaluate a model on a dataset.

@@ -19,12 +19,12 @@ import sys
 import subprocess
 from pathlib import Path
 
-from datasets import get_visual_wake_words_dataset
-from utils import load_model, evaluate_model
-from utils.evaluation import print_results
+from datasets import get_visual_wake_words_dataset, get_imagenet_dataset
+from utils import load_model, evaluate_model, evaluate_model_multiclass
+from utils.evaluation import print_results, print_results_multiclass
 
 
-SUPPORTED_DATASETS = ['visual_wake_words']
+SUPPORTED_DATASETS = ['visual_wake_words', 'imagenet']
 
 # Mapping of model names to their expected files
 VWW_TRAINED_MODELS = {
@@ -33,6 +33,20 @@ VWW_TRAINED_MODELS = {
         'image_size': 96,
         'description': 'MobileNetV1 (alpha=0.25) trained on VWW'
     }
+}
+
+# Mapping of ImageNet model aliases to torchvision model names
+IMAGENET_MODEL_ALIASES = {
+    'mobilenet_v1': 'mobilenet_v2',  # torchvision doesn't have v1, use v2 as closest
+    'mobilenet_v1_imagenet': 'mobilenet_v2',
+    'mobilenet_v2': 'mobilenet_v2',
+    'mobilenet_v2_imagenet': 'mobilenet_v2',
+    'mobilenet_v3_small': 'mobilenet_v3_small',
+    'mobilenet_v3_large': 'mobilenet_v3_large',
+    'resnet18': 'resnet18',
+    'resnet50': 'resnet50',
+    'vit_b_16': 'vit_b_16',
+    'vit_b_32': 'vit_b_32',
 }
 
 
@@ -50,6 +64,18 @@ Examples:
   # Evaluate custom model with specific batch size
   python benchmark.py --model ./models/my_model.pth --dataset visual_wake_words --batch-size 64 \\
     --vww-root ./data/coco2014/all --vww-ann ./data/coco2014/annotations/vww/instances_val.json
+
+  # Evaluate MobileNetV2 on ImageNet validation set
+  python benchmark.py --model mobilenet_v2 --dataset imagenet \\
+    --imagenet-root ./data/imagenet
+
+  # Evaluate ResNet50 on ImageNet with custom batch size
+  python benchmark.py --model resnet50 --dataset imagenet \\
+    --imagenet-root ./data/imagenet --batch-size 64
+
+  # Evaluate ViT on ImageNet
+  python benchmark.py --model vit_b_16 --dataset imagenet \\
+    --imagenet-root ./data/imagenet
 
   # Use CPU instead of GPU
   python benchmark.py --model mobilenet_v1 --dataset visual_wake_words --device cpu \\
@@ -126,14 +152,22 @@ Examples:
         '--vww-root',
         type=str,
         default="./data/coco2014/all",
-        help='Root directory for VWW COCO images (required)'
+        help='Root directory for VWW COCO images (required for visual_wake_words dataset)'
     )
 
     parser.add_argument(
         '--vww-ann',
         type=str,
         default="./data/coco2014/annotations/vww/instances_val.json",
-        help='Path to VWW annotation JSON file (required)'
+        help='Path to VWW annotation JSON file (required for visual_wake_words dataset)'
+    )
+
+    # ImageNet dataset arguments
+    parser.add_argument(
+        '--imagenet-root',
+        type=str,
+        default="./data/imagenet",
+        help='Root directory for ImageNet dataset containing train/ and val/ folders'
     )
 
     return parser.parse_args()
@@ -189,7 +223,8 @@ def download_vww_model_if_needed(model_name, models_dir='./models'):
 
 
 def get_dataset(dataset_name, split, batch_size, num_workers, image_size,
-                vww_root=None, vww_ann=None, preprocessing='imagenet'):
+                vww_root=None, vww_ann=None, imagenet_root=None,
+                preprocessing='imagenet'):
     """
     Load the specified dataset.
 
@@ -201,6 +236,7 @@ def get_dataset(dataset_name, split, batch_size, num_workers, image_size,
         image_size (int): Image size
         vww_root (str): VWW COCO images root
         vww_ann (str): VWW annotation file
+        imagenet_root (str): ImageNet root directory
         preprocessing (str): Preprocessing type ('imagenet' or 'tflite')
 
     Returns:
@@ -216,6 +252,15 @@ def get_dataset(dataset_name, split, batch_size, num_workers, image_size,
             vww_ann=vww_ann,
             preprocessing=preprocessing
         )
+    elif dataset_name == 'imagenet':
+        return get_imagenet_dataset(
+            split=split,
+            batch_size=batch_size,
+            num_workers=num_workers,
+            image_size=image_size,
+            imagenet_root=imagenet_root,
+            preprocessing=preprocessing
+        )
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}")
 
@@ -223,6 +268,12 @@ def get_dataset(dataset_name, split, batch_size, num_workers, image_size,
 def main():
     """Main benchmark function."""
     args = parse_args()
+
+    # Determine number of classes based on dataset
+    if args.dataset == 'imagenet':
+        num_classes = 1000
+    else:
+        num_classes = args.num_classes
 
     # Auto-expand model name for VWW dataset
     # If user specifies "mobilenet_v1" and dataset is VWW, use "mobilenet_v1_vww"
@@ -235,6 +286,14 @@ def main():
         print("Note: Using trained VWW model (mobilenet_v1_vww) for Visual Wake Words dataset")
         print()
 
+    # Resolve model aliases for ImageNet dataset
+    model_path = args.model
+    if args.dataset == 'imagenet' and args.model in IMAGENET_MODEL_ALIASES:
+        model_path = IMAGENET_MODEL_ALIASES[args.model]
+        if model_path != args.model:
+            print(f"Note: Resolving '{args.model}' to torchvision model '{model_path}'")
+            print()
+
     print("="*60)
     print("VISUAL TRANSFORMERS TEST BENCH")
     print("="*60)
@@ -244,6 +303,7 @@ def main():
     print(f"Device:       {args.device}")
     print(f"Batch Size:   {args.batch_size}")
     print(f"Image Size:   {args.image_size}")
+    print(f"Num Classes:  {num_classes}")
     print("="*60 + "\n")
 
     # Check device availability
@@ -253,7 +313,6 @@ def main():
 
     try:
         # Check if this is a known VWW model that needs downloading
-        model_path = args.model
         if args.model in VWW_TRAINED_MODELS:
             model_path = download_vww_model_if_needed(args.model)
             # Auto-set image size if not specified
@@ -267,7 +326,7 @@ def main():
         print("Loading model...")
         model, model_metadata = load_model(
             model_path=model_path,
-            num_classes=args.num_classes,
+            num_classes=num_classes,
             device=args.device
         )
         print("Model loaded successfully!\n")
@@ -290,21 +349,32 @@ def main():
             image_size=args.image_size,
             vww_root=args.vww_root,
             vww_ann=args.vww_ann,
+            imagenet_root=args.imagenet_root,
             preprocessing=preprocessing
         )
         print("Dataset loaded successfully!\n")
 
-        # Run evaluation
+        # Run evaluation - use appropriate evaluation function based on dataset
         print("Starting evaluation...")
-        results = evaluate_model(
-            model=model,
-            dataloader=dataloader,
-            device=args.device,
-            verbose=not args.quiet
-        )
-
-        # Print results
-        print_results(results)
+        if args.dataset == 'imagenet':
+            results = evaluate_model_multiclass(
+                model=model,
+                dataloader=dataloader,
+                device=args.device,
+                verbose=not args.quiet,
+                topk=(1, 5)
+            )
+            # Print results
+            print_results_multiclass(results)
+        else:
+            results = evaluate_model(
+                model=model,
+                dataloader=dataloader,
+                device=args.device,
+                verbose=not args.quiet
+            )
+            # Print results
+            print_results(results)
 
         return 0
 

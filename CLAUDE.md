@@ -12,8 +12,9 @@ The codebase has four main components that work together:
 
 1. **benchmark.py**: Main orchestrator that coordinates the evaluation pipeline
 2. **utils/model_loader.py**: Multi-source model loading with automatic fallback (file checkpoints → torchvision → timm)
-3. **utils/evaluation.py**: Model evaluation and comprehensive metrics calculation
+3. **utils/evaluation.py**: Model evaluation and comprehensive metrics calculation (binary and multi-class)
 4. **datasets/visual_wake_words.py**: Dataset loader wrapping pyvww with PyTorch DataLoader interface
+5. **datasets/imagenet.py**: ImageNet 1k dataset loader using torchvision ImageFolder
 
 ### Model Loading Strategy
 
@@ -48,16 +49,50 @@ Visual Wake Words uses pyvww library wrapped in PyTorch Dataset interface:
 
 When adding new datasets, follow the pattern in `datasets/visual_wake_words.py`: create a factory function that returns a DataLoader with appropriate transforms.
 
+### ImageNet Dataset
+
+ImageNet 1k uses torchvision's ImageFolder with standard preprocessing:
+
+**Directory Structure:**
+```
+imagenet_root/
+    train/
+        n01440764/
+            *.JPEG
+        n01443537/
+            *.JPEG
+        ...
+    val/
+        n01440764/
+            *.JPEG
+        ...
+```
+
+**Preprocessing Pipeline:**
+- Training: RandomResizedCrop(224) → RandomHorizontalFlip → ToTensor → Normalize(ImageNet stats)
+- Val: Resize(256) → CenterCrop(224) → ToTensor → Normalize(ImageNet stats)
+
+**Key Configuration:**
+- 1000 classes (automatically set when using `--dataset imagenet`)
+- Default image size: 224×224
+- Uses top-1 and top-5 accuracy metrics
+
 ### Evaluation Metrics
 
-The evaluation pipeline calculates binary classification metrics:
+**Binary Classification (VWW):**
 - Accuracy, Precision, Recall, F1 Score
 - Confusion Matrix (TP/TN/FP/FN)
 - Performance: inference time per sample, throughput, total time
 
+**Multi-class Classification (ImageNet):**
+- Top-1 Accuracy (standard accuracy)
+- Top-5 Accuracy (correct class in top 5 predictions)
+- Performance: inference time per sample, throughput, total time
+
 **Prediction Logic:**
-- Single output: sigmoid threshold at 0.5
-- Multiple outputs: softmax + argmax
+- Binary (single output): sigmoid threshold at 0.5
+- Binary (two outputs): softmax + argmax
+- Multi-class: top-k predictions using argmax
 
 ## Common Commands
 
@@ -116,6 +151,42 @@ python benchmark.py \
   --vww-ann ./data/coco2014/annotations/vww/instances_val.json
 ```
 
+### ImageNet Evaluation
+
+```bash
+# Evaluate MobileNetV2 on ImageNet validation set (pretrained weights)
+python benchmark.py \
+  --model mobilenet_v2 \
+  --dataset imagenet \
+  --imagenet-root ./data/imagenet
+
+# Evaluate ResNet50 on ImageNet with custom batch size
+python benchmark.py \
+  --model resnet50 \
+  --dataset imagenet \
+  --imagenet-root ./data/imagenet \
+  --batch-size 64
+
+# Evaluate Vision Transformer on ImageNet
+python benchmark.py \
+  --model vit_b_16 \
+  --dataset imagenet \
+  --imagenet-root ./data/imagenet
+
+# Evaluate MobileNetV3 variants
+python benchmark.py \
+  --model mobilenet_v3_small \
+  --dataset imagenet \
+  --imagenet-root ./data/imagenet
+
+# CPU-only ImageNet evaluation
+python benchmark.py \
+  --model mobilenet_v2 \
+  --dataset imagenet \
+  --imagenet-root ./data/imagenet \
+  --device cpu
+```
+
 ## Important Implementation Details
 
 ### Checkpoint Format
@@ -135,11 +206,17 @@ The loader checks for `model` key (full model), then `state_dict` or `model_stat
 
 ### Dataset Requirements
 
-Visual Wake Words expects:
-- `vww_root`: Directory containing COCO images (expects `coco2014/all/` structure from setup script)
-- `vww_ann`: JSON annotation file with VWW binary labels
+**Visual Wake Words:**
+- `--vww-root`: Directory containing COCO images (expects `coco2014/all/` structure from setup script)
+- `--vww-ann`: JSON annotation file with VWW binary labels
 
 The setup script (`utils/datasets/vww/setup_vww_dataset.sh`) creates proper directory structure and generates annotations from COCO using the visualwakewords repository scripts.
+
+**ImageNet:**
+- `--imagenet-root`: Root directory containing `train/` and `val/` subdirectories
+- Each subdirectory contains class folders named by WordNet IDs (e.g., `n01440764/`)
+- Download from https://www.image-net.org/ (requires registration)
+- Standard structure from ILSVRC2012 challenge is supported
 
 ### Adding New Datasets
 
@@ -165,17 +242,20 @@ This framework supports MLPerf Tiny visual wake words benchmark:
 The codebase uses manual validation rather than automated tests. When making changes:
 
 1. Test with trained VWW model: `python benchmark.py --model mobilenet_v1_vww --dataset visual_wake_words ...`
-2. Verify metrics output matches expected format
-3. Test model loading fallback chain (TFLite → checkpoint → torchvision → timm)
-4. Validate dataset loading with different splits (train/val/test)
-5. Verify preprocessing selection (TFLite vs ImageNet normalization)
+2. Test with ImageNet pretrained model: `python benchmark.py --model mobilenet_v2 --dataset imagenet ...`
+3. Verify metrics output matches expected format (binary vs multi-class)
+4. Test model loading fallback chain (TFLite → checkpoint → torchvision → timm)
+5. Validate dataset loading with different splits (train/val/test)
+6. Verify preprocessing selection (TFLite vs ImageNet normalization)
 
 ## Project Structure Notes
 
 - `benchmark.py` - Single entry point, keep CLI interface stable
 - `utils/model_loader.py` - Model loading logic, maintain fallback chain
-- `utils/evaluation.py` - Evaluation metrics, extend for new metric types
+- `utils/evaluation.py` - Evaluation metrics (binary and multi-class), extend for new metric types
 - `datasets/` - Dataset loaders, each returns configured DataLoader
+  - `visual_wake_words.py` - VWW dataset loader (binary classification)
+  - `imagenet.py` - ImageNet 1k dataset loader (1000-class classification)
 - `models/` - Custom model implementations (currently empty, for future use)
 - `utils/datasets/vww/setup_vww_dataset.sh` - Bash script for dataset automation
 - `utils/datasets/vww/download_vww_model.py` - Utility for VWW-trained model preparation
