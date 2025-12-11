@@ -125,14 +125,14 @@ Examples:
     parser.add_argument(
         '--vww-root',
         type=str,
-        default=None,
+        default="./data/coco2014/all",
         help='Root directory for VWW COCO images (required)'
     )
 
     parser.add_argument(
         '--vww-ann',
         type=str,
-        default=None,
+        default="./data/coco2014/annotations/vww/instances_train.json",
         help='Path to VWW annotation JSON file (required)'
     )
 
