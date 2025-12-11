@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Download pretrained MobileNetV1 model for CIFAR-10.
+Download pretrained MobileNetV2 model for CIFAR-10.
 
-This script downloads a MobileNetV1 model trained on CIFAR-10 dataset.
+This script downloads a MobileNetV2 x0.5 model trained on CIFAR-10 dataset.
 Source: chenyaofo/pytorch-cifar-models (GitHub)
-Paper: https://arxiv.org/abs/1704.04861
+Paper: https://arxiv.org/abs/1801.04381
 """
 
 import argparse
@@ -15,7 +15,7 @@ from pathlib import Path
 
 def download_model(output_dir='./models'):
     """
-    Download MobileNetV1 CIFAR-10 trained model.
+    Download MobileNetV2 x0.5 CIFAR-10 trained model.
     
     Using model from: https://github.com/chenyaofo/pytorch-cifar-models
     This is a reputable source with pretrained CIFAR-10 models.
@@ -67,7 +67,7 @@ def download_model(output_dir='./models'):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Download MobileNet CIFAR-10 pretrained model'
+        description='Download MobileNetV2 CIFAR-10 pretrained model'
     )
     parser.add_argument(
         '--output-dir',
