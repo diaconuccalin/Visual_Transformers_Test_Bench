@@ -228,6 +228,7 @@ def main():
     # If user specifies "mobilenet_v1" and dataset is VWW, use "mobilenet_v1_vww"
     if args.dataset == 'visual_wake_words' and args.model == 'mobilenet_v1':
         args.model = 'mobilenet_v1_vww'
+        args.device = "cpu"
         print("Note: Using trained VWW model (mobilenet_v1_vww) for Visual Wake Words dataset")
         print()
 
