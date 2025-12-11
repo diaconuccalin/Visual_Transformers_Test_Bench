@@ -56,6 +56,9 @@ Examples:
   python benchmark.py --model mobilenet_v1 --dataset visual_wake_words \\
     --vww-root ./data/coco2014/all --vww-ann ./data/coco2014/annotations/vww/instances_val.json
 
+  # Evaluate MobileNetV2 on CIFAR-10 (auto-downloads dataset and model)
+  python benchmark.py --model mobilenet_v1 --dataset cifar10
+
   # Evaluate custom model with specific batch size
   python benchmark.py --model ./models/my_model.pth --dataset visual_wake_words --batch-size 64 \\
     --vww-root ./data/coco2014/all --vww-ann ./data/coco2014/annotations/vww/instances_val.json
