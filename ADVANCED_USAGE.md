@@ -9,7 +9,7 @@ Load and evaluate a custom trained model from a checkpoint file:
 ```bash
 python benchmark.py --model ./models/my_model.pth --dataset visual_wake_words \
   --vww-root ./data/coco2014/all \
-  --vww-ann ./data/vww/instances_train.json
+  --vww-ann ./data/coco2014/annotations/vww/instances_train.json
 ```
 
 ## Adjusting Batch Size and Image Size
@@ -19,7 +19,7 @@ Configure batch size and input image dimensions for your evaluation:
 ```bash
 python benchmark.py --model mobilenet_v2 --dataset visual_wake_words \
   --vww-root ./data/coco2014/all \
-  --vww-ann ./data/vww/instances_train.json \
+  --vww-ann ./data/coco2014/annotations/vww/instances_train.json \
   --batch-size 64 --image-size 224
 ```
 
@@ -32,7 +32,7 @@ Force evaluation on CPU even when GPU is available:
 ```bash
 python benchmark.py --model mobilenet_v2 --dataset visual_wake_words \
   --vww-root ./data/coco2014/all \
-  --vww-ann ./data/vww/instances_train.json \
+  --vww-ann ./data/coco2014/annotations/vww/instances_train.json \
   --device cpu
 ```
 
@@ -43,7 +43,7 @@ Evaluate on the validation split instead of the test split:
 ```bash
 python benchmark.py --model mobilenet_v2 --dataset visual_wake_words \
   --vww-root ./data/coco2014/all \
-  --vww-ann ./data/vww/instances_minival.json \
+  --vww-ann ./data/coco2014/annotations/vww/instances_minival.json \
   --split val
 ```
 
@@ -55,13 +55,13 @@ You can combine multiple options for fine-grained control:
 # MLPerf Tiny benchmark configuration
 python benchmark.py --model mobilenet_v2 --dataset visual_wake_words \
   --vww-root ./data/coco2014/all \
-  --vww-ann ./data/vww/instances_train.json \
+  --vww-ann ./data/coco2014/annotations/vww/instances_train.json \
   --image-size 96 --batch-size 32 --device cuda
 
 # Large batch evaluation on custom model
 python benchmark.py --model ./models/custom_vit.pth --dataset visual_wake_words \
   --vww-root ./data/coco2014/all \
-  --vww-ann ./data/vww/instances_train.json \
+  --vww-ann ./data/coco2014/annotations/vww/instances_train.json \
   --batch-size 128 --num-workers 8
 ```
 

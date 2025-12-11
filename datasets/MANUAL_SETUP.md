@@ -41,7 +41,7 @@ python scripts/create_coco_train_minival_split.py \
 python scripts/create_visualwakewords_annotations.py \
   --train_annotations_file="/path/to/coco2014/annotations/instances_maxitrain.json" \
   --val_annotations_file="/path/to/coco2014/annotations/instances_minival.json" \
-  --output_dir="/path/to/vww" \
+  --output_dir="/path/to/coco2014/annotations/vww" \
   --threshold=0.005 \
   --foreground_class='person'
 ```
@@ -53,7 +53,7 @@ After completing the manual setup, you can use the dataset with the benchmark sc
 ```bash
 python benchmark.py --model mobilenet_v2 --dataset visual_wake_words \
   --vww-root /path/to/coco2014/all \
-  --vww-ann /path/to/vww/instances_train.json
+  --vww-ann /path/to/coco2014/annotations/vww/instances_train.json
 ```
 
 See the main [README.md](README.md) for more usage examples.

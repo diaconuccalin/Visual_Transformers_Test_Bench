@@ -82,14 +82,14 @@ python benchmark.py \
   --model mobilenet_v2 \
   --dataset visual_wake_words \
   --vww-root ./data/coco2014/all \
-  --vww-ann ./data/vww/instances_val.json
+  --vww-ann ./data/coco2014/annotations/vww/instances_val.json
 
 # Custom checkpoint evaluation
 python benchmark.py \
   --model ./models/my_model.pth \
   --dataset visual_wake_words \
   --vww-root ./data/coco2014/all \
-  --vww-ann ./data/vww/instances_val.json
+  --vww-ann ./data/coco2014/annotations/vww/instances_val.json
 
 # MLPerf Tiny compliant (96×96 images)
 python benchmark.py \
@@ -97,7 +97,7 @@ python benchmark.py \
   --dataset visual_wake_words \
   --image-size 96 \
   --vww-root ./data/coco2014/all \
-  --vww-ann ./data/vww/instances_train.json
+  --vww-ann ./data/coco2014/annotations/vww/instances_train.json
 
 # CPU-only evaluation
 python benchmark.py \
@@ -105,7 +105,7 @@ python benchmark.py \
   --dataset visual_wake_words \
   --device cpu \
   --vww-root ./data/coco2014/all \
-  --vww-ann ./data/vww/instances_val.json
+  --vww-ann ./data/coco2014/annotations/vww/instances_val.json
 ```
 
 ## Important Implementation Details

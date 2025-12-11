@@ -43,7 +43,7 @@ Evaluate a pretrained model on the Visual Wake Words dataset:
 ```bash
 python benchmark.py --model mobilenet_v2 --dataset visual_wake_words \
   --vww-root ./data/coco2014/all \
-  --vww-ann ./data/vww/instances_train.json
+  --vww-ann ./data/coco2014/annotations/vww/instances_train.json
 ```
 
 ### Advanced Usage
