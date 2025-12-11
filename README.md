@@ -2,15 +2,6 @@
 
 A benchmarking framework for evaluating visual transformer and hybrid models on various datasets, with a focus on models targeting low-power devices and **MLPerf Tiny compatibility**.
 
-## Features
-
-- **Easy-to-use CLI interface** for model evaluation
-- **Original Visual Wake Words dataset** support (MLPerf Tiny benchmark compatible)
-- **Wake Vision dataset** support (optional, 100x larger successor to VWW)
-- **Comprehensive metrics**: accuracy, precision, recall, F1 score, inference time, throughput
-- **Flexible model loading**: supports PyTorch checkpoints, torchvision models, and timm models
-- **GPU and CPU support** for inference
-
 ## Installation
 
 1. Clone the repository:
@@ -38,8 +29,6 @@ This will:
 1. Download COCO 2014 dataset (~40 GB)
 2. Generate Visual Wake Words annotations
 3. Create train/minival splits
-
-The setup takes approximately 1-2 hours depending on your internet connection.
 
 ### Manual Setup
 
@@ -285,7 +274,3 @@ Optional (for Wake Vision):
 ## License
 
 This project is provided as-is for research and benchmarking purposes.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit issues or pull requests.
