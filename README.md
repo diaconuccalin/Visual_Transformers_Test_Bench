@@ -51,15 +51,7 @@ This will:
 - Use the correct 96x96 input size
 - Achieve ~84% accuracy on the validation set
 
-**Alternative**: Use untrained MobileNetV2 from torchvision (requires training first for good accuracy):
-
-```bash
-python benchmark.py --model mobilenet_v2 --dataset visual_wake_words \
-  --vww-root ./data/coco2014/all \
-  --vww-ann ./data/coco2014/annotations/vww/instances_val.json
-```
-
-Note: Using untrained models will result in poor accuracy (~50%, random guessing). The `mobilenet_v1_vww` model is pre-trained on VWW and ready to use.
+Note: The `mobilenet_v1_vww` model is pre-trained on VWW and ready to use. Using other untrained models from torchvision or timm will result in poor accuracy (~50%, random guessing) unless you train them first on the VWW dataset.
 
 ### Advanced Usage
 
@@ -115,19 +107,17 @@ The benchmark script supports multiple model formats:
 
 3. **PyTorch Checkpoints**: Load custom trained models from `.pth` or `.pt` files
 
-4. **Torchvision Models**: Use any pretrained model from torchvision (e.g., `mobilenet_v2`, `resnet18`, `vit_b_16`)
-   - Note: These are ImageNet-pretrained, not VWW-trained. Expect poor accuracy without fine-tuning.
+4. **Torchvision Models**: Use any pretrained model from torchvision (e.g., `resnet18`, `vit_b_16`)
+   - Note: These are ImageNet-pretrained, not VWW-trained. Expect poor accuracy without fine-tuning on VWW.
 
 5. **Timm Models**: Access thousands of models from the timm library (e.g., `mobilevit_s`, `efficientnet_b0`)
 
 ### Example Models for Low-Power Devices
 
 - `mobilenet_v1_vww`: **Recommended** - Pre-trained on VWW, 96x96 input, ~84% accuracy
-- `mobilenet_v2`: Efficient CNN for mobile devices (requires VWW training)
-- `mobilenet_v3_small`: Lightweight MobileNet variant
-- `mobilevit_s`: Mobile Vision Transformer (requires timm)
-- `efficientnet_b0`: Efficient CNN with excellent accuracy/efficiency trade-off
-- `resnet18`: Lightweight ResNet variant
+- `resnet18`: Lightweight ResNet variant (ImageNet weights, requires VWW fine-tuning)
+- `mobilevit_s`: Mobile Vision Transformer (requires timm library and VWW training)
+- `efficientnet_b0`: Efficient CNN with excellent accuracy/efficiency trade-off (requires VWW training)
 
 ## Output Metrics
 

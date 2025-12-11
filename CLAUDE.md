@@ -25,7 +25,7 @@ The `load_model()` function implements a fallback chain:
 - Adapts classifier head for target num_classes
 
 **Priority 2 - Torchvision:**
-- Loads pretrained models (e.g., `mobilenet_v2`, `resnet18`)
+- Loads pretrained models (e.g., `resnet18`, `vit_b_16`)
 - Automatically modifies output layers (handles `fc`, `classifier`, `head` naming patterns)
 
 **Priority 3 - Timm (Fallback):**
@@ -99,9 +99,9 @@ python benchmark.py \
   --vww-root ./data/coco2014/all \
   --vww-ann ./data/coco2014/annotations/vww/instances_val.json
 
-# Untrained MobileNetV2 (ImageNet weights, poor VWW accuracy ~50%)
+# Example: Untrained ResNet18 (ImageNet weights, poor VWW accuracy ~50%)
 python benchmark.py \
-  --model mobilenet_v2 \
+  --model resnet18 \
   --dataset visual_wake_words \
   --vww-root ./data/coco2014/all \
   --vww-ann ./data/coco2014/annotations/vww/instances_val.json
@@ -124,7 +124,7 @@ When saving model checkpoints, use this metadata structure for compatibility wit
 ```python
 checkpoint = {
     'model_state_dict': model.state_dict(),
-    'architecture': 'mobilenet_v2',  # torchvision model name
+    'architecture': 'resnet18',  # torchvision model name
     'num_classes': 2,
     'dataset': 'visual_wake_words'
 }
@@ -163,10 +163,11 @@ This framework supports MLPerf Tiny visual wake words benchmark:
 
 The codebase uses manual validation rather than automated tests. When making changes:
 
-1. Test with pretrained model: `python benchmark.py --model mobilenet_v2 --dataset visual_wake_words ...`
+1. Test with trained VWW model: `python benchmark.py --model mobilenet_v1_vww --dataset visual_wake_words ...`
 2. Verify metrics output matches expected format
-3. Test model loading fallback chain (checkpoint → torchvision → timm)
+3. Test model loading fallback chain (TFLite → checkpoint → torchvision → timm)
 4. Validate dataset loading with different splits (train/val/test)
+5. Verify preprocessing selection (TFLite vs ImageNet normalization)
 
 ## Project Structure Notes
 

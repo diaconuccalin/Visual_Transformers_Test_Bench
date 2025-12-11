@@ -45,7 +45,7 @@ def load_model(model_path, num_classes=2, device='cuda'):
             elif 'model_state_dict' in checkpoint or 'state_dict' in checkpoint:
                 # Checkpoint contains state_dict - need to reconstruct model
                 state_dict_key = 'model_state_dict' if 'model_state_dict' in checkpoint else 'state_dict'
-                architecture = checkpoint.get('architecture', 'mobilenet_v2')
+                architecture = checkpoint.get('architecture', 'resnet18')
                 num_classes_saved = checkpoint.get('num_classes', num_classes)
 
                 print(f"Loading {architecture} from state_dict with {num_classes_saved} classes...")

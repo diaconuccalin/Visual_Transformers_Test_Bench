@@ -80,24 +80,20 @@ def convert_tflite_to_pytorch(tflite_path, num_classes=2):
 
 def create_vww_mobilenet(num_classes=2):
     """
-    Create a MobileNetV2 model adapted for Visual Wake Words (2 classes).
+    Create a MobileNetV1 model adapted for Visual Wake Words (2 classes).
+
+    Note: This creates an untrained model skeleton. For trained weights,
+    the script downloads vww_96_float.tflite from MLCommons.
 
     Returns a model with a binary classification head.
     """
-    print(f"Creating MobileNetV2 with {num_classes} classes for VWW...")
+    print(f"Note: Creating MobileNetV1 skeleton (untrained)")
+    print(f"The actual trained model is downloaded as TFLite format")
 
-    # Load pretrained MobileNetV2
-    model = models.mobilenet_v2(pretrained=True)
-
-    # Replace the classifier for binary classification
-    # MobileNetV2 has classifier with input features of 1280
-    model.classifier = nn.Sequential(
-        nn.Dropout(p=0.2),
-        nn.Linear(model.last_channel, num_classes)
-    )
-
-    print("Model created successfully!")
-    return model
+    # For reference only - actual model is TFLite
+    # MobileNetV1 architecture would need to be implemented or use timm
+    print("Model structure reference created (not used for inference)")
+    return None
 
 
 def main():
@@ -121,7 +117,6 @@ def main():
     # Create output directory
     os.makedirs(args.output_dir, exist_ok=True)
     tflite_path = os.path.join(args.output_dir, 'vww_96_float.tflite')
-    pytorch_path = os.path.join(args.output_dir, 'mobilenet_v2_vww.pth')
 
     print("="*60)
     print("Visual Wake Words MobileNet Model Download")

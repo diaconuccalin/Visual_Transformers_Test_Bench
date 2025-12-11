@@ -10,7 +10,6 @@ Usage:
 
 Example:
     python benchmark.py --model mobilenet_v1_vww --dataset visual_wake_words
-    python benchmark.py --model mobilenet_v2 --dataset visual_wake_words
     python benchmark.py --model ./models/my_model.pth --dataset visual_wake_words --batch-size 64
 """
 
@@ -46,10 +45,6 @@ def parse_args():
 Examples:
   # Evaluate trained MobileNetV1 on Visual Wake Words (auto-downloads if needed)
   python benchmark.py --model mobilenet_v1_vww --dataset visual_wake_words \\
-    --vww-root ./data/coco2014/all --vww-ann ./data/coco2014/annotations/vww/instances_val.json
-
-  # Evaluate MobileNetV2 on Visual Wake Words (requires training first)
-  python benchmark.py --model mobilenet_v2 --dataset visual_wake_words \\
     --vww-root ./data/coco2014/all --vww-ann ./data/coco2014/annotations/vww/instances_val.json
 
   # Evaluate custom model with specific batch size
