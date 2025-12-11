@@ -9,8 +9,8 @@ Usage:
     python benchmark.py --model <model_path_or_name> --dataset <dataset_name> [options]
 
 Example:
-    python benchmark.py --model mobilenet_v1_vww --dataset visual_wake_words
-    python benchmark.py --model ./models/my_model.pth --dataset visual_wake_words --batch-size 64
+    python benchmark.py --model mobilenet_v1 --dataset visual_wake_words --vww-root ./data/coco2014/all --vww-ann ./data/coco2014/annotations/vww/instances_val.json
+    python benchmark.py --model ./models/my_model.pth --dataset visual_wake_words --vww-root ./data/coco2014/all --vww-ann ./data/coco2014/annotations/vww/instances_val.json
 """
 
 import argparse
@@ -44,7 +44,7 @@ def parse_args():
         epilog="""
 Examples:
   # Evaluate trained MobileNetV1 on Visual Wake Words (auto-downloads if needed)
-  python benchmark.py --model mobilenet_v1_vww --dataset visual_wake_words \\
+  python benchmark.py --model mobilenet_v1 --dataset visual_wake_words \\
     --vww-root ./data/coco2014/all --vww-ann ./data/coco2014/annotations/vww/instances_val.json
 
   # Evaluate custom model with specific batch size
@@ -52,7 +52,7 @@ Examples:
     --vww-root ./data/coco2014/all --vww-ann ./data/coco2014/annotations/vww/instances_val.json
 
   # Use CPU instead of GPU
-  python benchmark.py --model mobilenet_v1_vww --dataset visual_wake_words --device cpu \\
+  python benchmark.py --model mobilenet_v1 --dataset visual_wake_words --device cpu \\
     --vww-root ./data/coco2014/all --vww-ann ./data/coco2014/annotations/vww/instances_val.json
         """
     )
@@ -223,6 +223,13 @@ def get_dataset(dataset_name, split, batch_size, num_workers, image_size,
 def main():
     """Main benchmark function."""
     args = parse_args()
+
+    # Auto-expand model name for VWW dataset
+    # If user specifies "mobilenet_v1" and dataset is VWW, use "mobilenet_v1_vww"
+    if args.dataset == 'visual_wake_words' and args.model == 'mobilenet_v1':
+        args.model = 'mobilenet_v1_vww'
+        print("Note: Using trained VWW model (mobilenet_v1_vww) for Visual Wake Words dataset")
+        print()
 
     print("="*60)
     print("VISUAL TRANSFORMERS TEST BENCH")

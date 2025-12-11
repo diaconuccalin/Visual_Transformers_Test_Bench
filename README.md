@@ -41,17 +41,18 @@ For manual setup instructions or if you need more control over the installation 
 Evaluate the trained MobileNetV1 model on Visual Wake Words (automatically downloads if needed):
 
 ```bash
-python benchmark.py --model mobilenet_v1_vww --dataset visual_wake_words \
+python benchmark.py --model mobilenet_v1 --dataset visual_wake_words \
   --vww-root ./data/coco2014/all \
   --vww-ann ./data/coco2014/annotations/vww/instances_val.json
 ```
 
 This will:
-- Automatically download the MLCommons Tiny trained VWW model (~1MB) if not already present
+- Automatically use the trained VWW model (you can also use `--model mobilenet_v1_vww` explicitly)
+- Download the MLCommons Tiny trained model (~1MB) if not already present
 - Use the correct 96x96 input size
 - Achieve ~84% accuracy on the validation set
 
-Note: The `mobilenet_v1_vww` model is pre-trained on VWW and ready to use. Using other untrained models from torchvision or timm will result in poor accuracy (~50%, random guessing) unless you train them first on the VWW dataset.
+Note: For the VWW dataset, `mobilenet_v1` automatically loads the trained `mobilenet_v1_vww` model. Using other models from torchvision or timm will result in poor accuracy (~50%, random guessing) unless you train them first on the VWW dataset.
 
 ### Advanced Usage
 

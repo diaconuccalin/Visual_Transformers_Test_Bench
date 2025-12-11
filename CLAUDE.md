@@ -79,8 +79,9 @@ python download_vww_model.py --output-dir ./models
 
 ```bash
 # Recommended: Evaluate trained MobileNetV1 (auto-downloads, ~84% accuracy)
+# Note: mobilenet_v1 automatically uses mobilenet_v1_vww for VWW dataset
 python benchmark.py \
-  --model mobilenet_v1_vww \
+  --model mobilenet_v1 \
   --dataset visual_wake_words \
   --vww-root ./data/coco2014/all \
   --vww-ann ./data/coco2014/annotations/vww/instances_val.json
@@ -108,7 +109,7 @@ python benchmark.py \
 
 # CPU-only evaluation
 python benchmark.py \
-  --model mobilenet_v1_vww \
+  --model mobilenet_v1 \
   --dataset visual_wake_words \
   --device cpu \
   --vww-root ./data/coco2014/all \

@@ -51,9 +51,11 @@ python scripts/create_visualwakewords_annotations.py \
 After completing the manual setup, you can use the dataset with the benchmark script:
 
 ```bash
-python benchmark.py --model mobilenet_v1_vww --dataset visual_wake_words \
+python benchmark.py --model mobilenet_v1 --dataset visual_wake_words \
   --vww-root /path/to/coco2014/all \
   --vww-ann /path/to/coco2014/annotations/vww/instances_val.json
 ```
+
+Note: `mobilenet_v1` automatically uses the trained VWW model for this dataset.
 
 See the main [README.md](README.md) for more usage examples.
