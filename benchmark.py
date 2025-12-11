@@ -170,7 +170,7 @@ def download_vww_model_if_needed(model_name, models_dir='./models'):
         # Run download script
         try:
             result = subprocess.run(
-                ['python', 'download_vww_model.py', '--output-dir', str(models_dir)],
+                ['python', 'utils/datasets/vww/download_vww_model.py', '--output-dir', str(models_dir)],
                 check=True,
                 capture_output=True,
                 text=True

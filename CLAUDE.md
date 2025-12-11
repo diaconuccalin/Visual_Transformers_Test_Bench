@@ -68,11 +68,11 @@ The evaluation pipeline calculates binary classification metrics:
 pip install -r requirements.txt
 
 # Download and prepare Visual Wake Words dataset (~40GB COCO 2014)
-bash setup_vww_dataset.sh ./data
+bash utils/datasets/vww/setup_vww_dataset.sh ./data
 
 # The trained VWW model downloads automatically when using mobilenet_v1_vww
 # Or manually download:
-python download_vww_model.py --output-dir ./models
+python utils/datasets/vww/download_vww_model.py --output-dir ./models
 ```
 
 ### Running Benchmarks
@@ -139,7 +139,7 @@ Visual Wake Words expects:
 - `vww_root`: Directory containing COCO images (expects `coco2014/all/` structure from setup script)
 - `vww_ann`: JSON annotation file with VWW binary labels
 
-The setup script (`setup_vww_dataset.sh`) creates proper directory structure and generates annotations from COCO using the visualwakewords repository scripts.
+The setup script (`utils/datasets/vww/setup_vww_dataset.sh`) creates proper directory structure and generates annotations from COCO using the visualwakewords repository scripts.
 
 ### Adding New Datasets
 
@@ -177,8 +177,8 @@ The codebase uses manual validation rather than automated tests. When making cha
 - `utils/evaluation.py` - Evaluation metrics, extend for new metric types
 - `datasets/` - Dataset loaders, each returns configured DataLoader
 - `models/` - Custom model implementations (currently empty, for future use)
-- `setup_vww_dataset.sh` - Bash script for dataset automation
-- `download_vww_model.py` - Utility for VWW-trained model preparation
+- `utils/datasets/vww/setup_vww_dataset.sh` - Bash script for dataset automation
+- `utils/datasets/vww/download_vww_model.py` - Utility for VWW-trained model preparation
 
 ## Design Patterns Used
 

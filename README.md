@@ -22,7 +22,7 @@ pip install -r requirements.txt
 Run the automated setup script to download COCO 2014 and generate Visual Wake Words annotations:
 
 ```bash
-bash setup_vww_dataset.sh ./data
+bash utils/datasets/vww/setup_vww_dataset.sh ./data
 ```
 
 This will:
@@ -138,7 +138,6 @@ The benchmark script provides comprehensive evaluation metrics:
 ```
 Visual_Transformers_Test_Bench/
 ├── benchmark.py              # Main benchmark script
-├── setup_vww_dataset.sh      # Automated dataset setup script
 ├── datasets/
 │   ├── __init__.py
 │   └── visual_wake_words.py  # VWW and Wake Vision dataset loaders
@@ -147,7 +146,11 @@ Visual_Transformers_Test_Bench/
 ├── utils/
 │   ├── __init__.py
 │   ├── evaluation.py         # Evaluation metrics and utilities
-│   └── model_loader.py       # Model loading utilities
+│   ├── model_loader.py       # Model loading utilities
+│   └── datasets/
+│       └── vww/
+│           ├── setup_vww_dataset.sh      # Automated dataset setup script
+│           └── download_vww_model.py     # VWW model download utility
 ├── requirements.txt          # Python dependencies
 └── README.md                 # This file
 ```
