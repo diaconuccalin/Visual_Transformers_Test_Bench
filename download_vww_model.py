@@ -114,9 +114,10 @@ def main():
 
     args = parser.parse_args()
 
-    # Create output directory
-    os.makedirs(args.output_dir, exist_ok=True)
-    tflite_path = os.path.join(args.output_dir, 'vww_96_float.tflite')
+    # Create output directory with mobilenet/v1 subdirectory
+    mobilenet_dir = os.path.join(args.output_dir, 'mobilenet', 'v1')
+    os.makedirs(mobilenet_dir, exist_ok=True)
+    tflite_path = os.path.join(mobilenet_dir, 'vww_96_float.tflite')
 
     print("="*60)
     print("Visual Wake Words MobileNet Model Download")

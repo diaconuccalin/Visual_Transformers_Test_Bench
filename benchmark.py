@@ -29,7 +29,7 @@ SUPPORTED_DATASETS = ['visual_wake_words']
 # Mapping of model names to their expected files
 VWW_TRAINED_MODELS = {
     'mobilenet_v1_vww': {
-        'file': 'vww_96_float.tflite',
+        'file': 'mobilenet/v1/vww_96_float.tflite',
         'image_size': 96,
         'description': 'MobileNetV1 (alpha=0.25) trained on VWW'
     }
